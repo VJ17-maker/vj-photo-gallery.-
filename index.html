@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VJ PHOTO GALLERY - Public photo gallery">
+  <title>VJ PHOTO GALLERY</title>
+  <style>
+    :root { --ink:#172033; --muted:#64748b; --accent:#2563eb; --bg:#f5f7fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Arial,"Noto Sans Gujarati",sans-serif; background:var(--bg); color:var(--ink); }
+    header { padding:42px 18px 30px; text-align:center; color:white; background:linear-gradient(135deg,#10234d,#2563eb); }
+    h1 { margin:0 0 10px; font-size:clamp(28px,5vw,46px); letter-spacing:1px; }
+    header p { margin:0; opacity:.9; font-size:16px; }
+    main { max-width:1200px; margin:auto; padding:24px 16px 50px; }
+    .toolbar { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:20px; }
+    #search { flex:1; min-width:220px; max-width:420px; padding:12px 14px; border:1px solid #d7deea; border-radius:12px; font-size:15px; }
+    .count { color:var(--muted); font-size:14px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+    .tile { border:0; padding:0; background:white; border-radius:14px; overflow:hidden; cursor:pointer; box-shadow:0 4px 16px #14213d12; text-align:left; }
+    .tile img { width:100%; height:220px; object-fit:cover; display:block; transition:transform .2s; }
+    .tile:hover img { transform:scale(1.025); }
+    .empty { text-align:center; padding:60px 15px; background:white; border-radius:14px; color:var(--muted); }
+    .lightbox { display:none; position:fixed; inset:0; background:#07111eee; z-index:5; align-items:center; justify-content:center; padding:20px; }
+    .lightbox.open { display:flex; }
+    .lightbox img { max-width:min(94vw,1100px); max-height:78vh; object-fit:contain; }
+    .close,.download { position:absolute; top:18px; border:0; border-radius:10px; padding:11px 15px; color:#fff; background:#ffffff25; cursor:pointer; font-size:15px; text-decoration:none; }
+    .close { right:18px; } .download { right:82px; }
+    footer { text-align:center; padding:20px; color:var(--muted); font-size:13px; }
+    @media(max-width:520px) { .grid {grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px;} .tile img{height:155px;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>VJ PHOTO GALLERY</h1>
+    <p>તમારી યાદો, એક જ જગ્યાએ</p>
+  </header>
+  <main>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="ફોટા શોધો..." aria-label="ફોટા શોધો">
+      <span class="count" id="count"></span>
+    </div>
+    <section class="grid" id="gallery" aria-label="Photo gallery"></section>
+    <div class="empty" id="empty" hidden>
+      <strong>હજુ ફોટા ઉમેર્યા નથી.</strong><br><br>
+      <span>photos ફોલ્ડરમાં ફોટા મૂકો અને નીચે index.html માં તેમની ફાઇલનાં નામ ઉમેરો.</span>
+    </div>
+  </main>
+  <footer>© <span id="year"></span> VJ PHOTO GALLERY</footer>
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+    <button class="close" id="close" aria-label="Close">✕ બંધ કરો</button>
+    <a class="download" id="download" download>ડાઉનલોડ</a>
+    <img id="large" alt="Selected photo">
+  </div>
+  <script>
+    // નવા ફોટા ઉમેરવા માટે: { file: "ફાઇલનું નામ.jpg", title: "ફોટાનું નામ" } ઉમેરો.
+    const photos = [
+      // ઉદાહરણ: { file: "photo1.jpg", title: "પ્રથમ ફોટો" },
+    ];
+
+    const gallery = document.getElementById("gallery");
+    const empty = document.getElementById("empty");
+    const search = document.getElementById("search");
+    const count = document.getElementById("count");
+    const lightbox = document.getElementById("lightbox");
+    const large = document.getElementById("large");
+    const download = document.getElementById("download");
+
+    function render() {
+      const term = search.value.trim().toLowerCase();
+      const shown = photos.filter(p => (p.title || p.file).toLowerCase().includes(term));
+      gallery.innerHTML = "";
+      shown.forEach(photo => {
+        const path = "photos/" + photo.file;
+        const button = document.createElement("button");
+        button.className = "tile";
+        button.type = "button";
+        const img = document.createElement("img");
+        img.src = path; img.alt = photo.title || photo.file; img.loading = "lazy";
+        button.appendChild(img);
+        button.addEventListener("click", () => {
+          large.src = path; large.alt = img.alt; download.href = path;
+          download.setAttribute("download", photo.file);
+          lightbox.classList.add("open");
+        });
+        gallery.appendChild(button);
+      });
+      count.textContent = shown.length + " ફોટા";
+      empty.hidden = photos.length !== 0;
+    }
+    search.addEventListener("input", render);
+    document.getElementById("close").addEventListener("click", () => lightbox.classList.remove("open"));
+    lightbox.addEventListener("click", e => { if (e.target === lightbox) lightbox.classList.remove("open"); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") lightbox.classList.remove("open"); });
+    document.getElementById("year").textContent = new Date().getFullYear();
+    render();
+  </script>
+</body>
+</html>
